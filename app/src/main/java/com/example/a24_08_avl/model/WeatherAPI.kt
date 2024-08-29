@@ -27,6 +27,7 @@ fun main() {
 }
 
 object WeatherAPI {
+
     val client = OkHttpClient()
     val gson = Gson()
 

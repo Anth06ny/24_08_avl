@@ -3,13 +3,28 @@ package com.example.a24_08_avl.exo
 import com.example.a24_08_avl.model.CarBean
 
 
-var v1:String? = null
 
 fun main() {
 
-    var car1 =  CarBean("","")
-    var car2 =  CarBean("","")
+//    var data : MyLiveData = MyLiveData( "Coucou")
+//    data.action = {
+//        println(it)
+//    }
+//
+//    data.value = "Blabla"
+
 }
+
+class MyLiveData(value : String) {
+    var value : String = value
+        set(newValue) {
+            field = newValue
+            action(newValue)
+        }
+
+    var action : (String)->Unit = {}
+}
+
 
 
 
