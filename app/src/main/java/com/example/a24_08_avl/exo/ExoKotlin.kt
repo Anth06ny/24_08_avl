@@ -1,25 +1,23 @@
 package com.example.a24_08_avl.exo
 
+import com.example.a24_08_avl.model.CarBean
+
+
+var v1:String? = null
+
 fun main() {
 
-//    var v1 = "Toto"
-//    println(v1.uppercase())
-//
-//    var v2 : String? = "Toto"
-//    println(v2?.uppercase())
-//
-//    var v3 : String? = null
-//    println(v3?.uppercase())
-//    var v4 = min(5, 6, 7)
-//    println(v4)
-
-    println(boulangerie(nbBaguette = 3))
-    println(scanNumber("Une phrase : "))
+    var car1 =  CarBean("","")
+    var car2 =  CarBean("","")
 }
+
+
+
 
 fun scanNumber(question: String) = scanText(question).toInt() ?: 0
 
 fun scanText(question: String): String {
+
     print(question)
     return readlnOrNull() ?: "-"
 }

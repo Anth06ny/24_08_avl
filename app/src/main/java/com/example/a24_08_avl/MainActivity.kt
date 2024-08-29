@@ -39,10 +39,11 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     )
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     _24_08_avlTheme {
-        Greeting("Android")
+        Greeting("Android2")
     }
 }
