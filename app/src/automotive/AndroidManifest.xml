@@ -1,0 +1,45 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+
+    <application>
+
+        <!-- Déclaration de l'activité de la librairie-->
+        <activity
+            android:name="androidx.car.app.activity.CarAppActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+
+            <!-- Si on souhaite la lancer au démarrage de l'application -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <meta-data
+                android:name="distractionOptimized"
+                android:value="true" />
+
+        </activity>
+
+        <activity android:name=".MainActivity"/>
+
+        <!-- Obligatoire -->
+        <meta-data
+              android:name="androidx.car.app.minCarApiLevel"
+              android:value="1"/>
+
+        <!-- Service qui permet à l'OS de se connecter à l'application -->
+        <!-- On peut indiquer un label et une icône spéciale -->
+        <service android:exported="true"
+            android:name=".car.MyCarService" >
+            <intent-filter>
+                <!-- Evenement de la librairie qui contacte le service -->
+                <action android:name="androidx.car.app.CarAppService"/>
+            </intent-filter>
+        </service>
+
+    </application>
+
+</manifest>

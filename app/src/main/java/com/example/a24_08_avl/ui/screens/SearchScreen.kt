@@ -1,6 +1,8 @@
 package com.example.a24_08_avl.ui.screens
 
+import android.content.pm.PackageManager
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction.Companion.Send
@@ -50,9 +54,13 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
 import com.example.a24_08_avl.R
+import com.example.a24_08_avl.ui.MyError
 import com.example.a24_08_avl.ui.theme._24_08_avlTheme
 import com.example.a24_08_avl.viewmodel.MainViewModel
 import com.example.a24_08_avl.viewmodel.PictureBean
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 
 @Preview(showBackground = true, showSystemUi = true, device = Devices.NEXUS_10)
 @Preview(showBackground = true, showSystemUi = true, uiMode = UI_MODE_NIGHT_YES, locale = "FR")
@@ -63,16 +71,23 @@ fun SearchScreenPreview() {
     _24_08_avlTheme {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             val viewModel = MainViewModel()
+            viewModel.loadFakeData()
+            viewModel.errorMessage = "Blabla"
+            viewModel.runInProgress = true
             SearchScreen(viewModel = viewModel)
         }
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SearchScreen(modifier: Modifier = Modifier, viewModel: MainViewModel) {
     var searchText: MutableState<String> = remember {
-        mutableStateOf("")
+        mutableStateOf("Nice")
     }
+
+    val locationPermissionState = rememberPermissionState("android.car.permission.CAR_SPEED")
+
 
     Column(modifier= modifier.background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -80,11 +95,18 @@ fun SearchScreen(modifier: Modifier = Modifier, viewModel: MainViewModel) {
 
         SearchBar(searchText = searchText)
 
+        AnimatedVisibility(visible = viewModel.runInProgress){
+            CircularProgressIndicator()
+
+        }
+
+        MyError(errorMessage = viewModel.errorMessage)
+
         //Permet de remplacer très facilement le RecyclerView. LazyRow existe aussi
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)
 ,modifier = Modifier.weight(1f)
         ) {
-            val filterList = viewModel.dataList.filter { it.title.contains(searchText.value) }
+            val filterList = viewModel.dataList //.filter { it.title.contains(searchText.value) }
 
             items(filterList.size) {
                 PictureRowItem(data = filterList[it])
@@ -116,6 +138,29 @@ fun SearchScreen(modifier: Modifier = Modifier, viewModel: MainViewModel) {
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                 Text(stringResource(id = R.string.bt_load))
+            }
+
+            val pm : PackageManager = LocalContext.current.packageManager
+            val isAutomotive = pm.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)
+            if (isAutomotive) {
+                Button(
+                    onClick = {
+                        //Si on a pas la permission on la demande
+                        if (!locationPermissionState.status.isGranted) {
+                            //Affiche la popup de demande de permission
+                            locationPermissionState.launchPermissionRequest()
+                        }
+                    },
+                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Rounded.Send,
+                        contentDescription = "Localized description",
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text("Permission")
+                }
             }
         }
     }
@@ -185,7 +230,7 @@ fun SearchBar(modifier: Modifier = Modifier, searchText: MutableState<String>) {
             )
         },
         singleLine = true,
-        label = { Text("Enter text", fontSize = 40.sp) }, //Texte d'aide qui se déplace
+        label = { Text(stringResource(id = R.string.search_text), fontSize = 40.sp) }, //Texte d'aide qui se déplace
         //Comment le composant doit se placer
         modifier = modifier
             .fillMaxWidth() // Prend toute la largeur
