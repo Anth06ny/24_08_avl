@@ -18,21 +18,20 @@ fun main() {
 }
 
 class MainViewModel : ViewModel() {
-    var dataList: ArrayList<PictureBean> = ArrayList()
+    var dataList: List<PictureBean> = ArrayList()
     var errorMessage = ""
     var runInProgress = false
 
     fun loadWeathers(cityName: String) {
-        val list: List<WeatherBean> = WeatherAPI.loadWeathers(cityName)
 
-        for (city in list) {
-            var picture = PictureBean(
-                city.id.toInt(),
+        val list: List<WeatherBean> = WeatherAPI.loadWeathers(cityName)
+        dataList = list.map {
+            PictureBean(
+                it.id.toInt(),
                 "https://openweathermap.org/img/wn/01d@4x",
-                city.name,
-                "Il fait ${city.main.temp}° à ${city.name} "
+                it.name,
+                "Il fait ${it.main.temp}° à ${it.name} "
             )
-            dataList.add(picture)
         }
     }
 

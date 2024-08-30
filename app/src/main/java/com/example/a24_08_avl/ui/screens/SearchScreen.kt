@@ -1,7 +1,9 @@
 package com.example.a24_08_avl.ui.screens
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +32,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -65,24 +70,30 @@ fun SearchScreenPreview() {
 
 @Composable
 fun SearchScreen(modifier: Modifier = Modifier, viewModel: MainViewModel) {
+    var searchText: MutableState<String> = remember {
+        mutableStateOf("")
+    }
+
     Column(modifier= modifier.background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-        SearchBar()
+        SearchBar(searchText = searchText)
 
         //Permet de remplacer très facilement le RecyclerView. LazyRow existe aussi
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)
 ,modifier = Modifier.weight(1f)
         ) {
-            items(viewModel.dataList.size) {
-                PictureRowItem(data = viewModel.dataList[it])
+            val filterList = viewModel.dataList.filter { it.title.contains(searchText.value) }
+
+            items(filterList.size) {
+                PictureRowItem(data = filterList[it])
             }
         }
 
         Row {
             Button(
-                onClick = { /* Do something! */ },
+                onClick = { searchText.value = "" },
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
             ) {
                 Icon(
@@ -95,7 +106,7 @@ fun SearchScreen(modifier: Modifier = Modifier, viewModel: MainViewModel) {
             }
 
             Button(
-                onClick = { /* Do something! */ },
+                onClick = { viewModel.loadWeathers(searchText.value) },
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding
             ) {
                 Icon(
@@ -113,6 +124,8 @@ fun SearchScreen(modifier: Modifier = Modifier, viewModel: MainViewModel) {
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun PictureRowItem(data:PictureBean, modifier: Modifier = Modifier){
+
+    var isExpanded  = remember {mutableStateOf(false) }
 
     Row (modifier = modifier
         .background(MaterialTheme.colorScheme.tertiary)
@@ -137,16 +150,19 @@ fun PictureRowItem(data:PictureBean, modifier: Modifier = Modifier){
         )
 
 
-        Column {
+        Column(modifier = Modifier.clickable {
+            isExpanded.value = !isExpanded.value
+        }) {
             Text(
                 text = data.title,
                 fontSize = 40.sp,
             )
 
             Text(
-                text = data.longText.take(20) + "...",
+                text = if(isExpanded.value) data.longText else  (data.longText.take(20) + "..."),
                 fontSize = 28.sp,
                 color = Color.Blue,
+                modifier = Modifier.animateContentSize()
             )
 
         }
@@ -156,10 +172,11 @@ fun PictureRowItem(data:PictureBean, modifier: Modifier = Modifier){
 }
 
 @Composable
-fun SearchBar(modifier: Modifier = Modifier) {
+fun SearchBar(modifier: Modifier = Modifier, searchText: MutableState<String>) {
+
     TextField(
-        value = "toto", //Valeur affichée
-        onValueChange = {newValue:String -> }, //Nouveau texte entrée
+        value = searchText.value, //Valeur affichée
+        onValueChange = {newValue:String -> searchText.value = newValue}, //Nouveau texte entrée
         leadingIcon = { //Image d'icone
             Icon(
                 imageVector = Icons.Default.Search,
@@ -172,6 +189,6 @@ fun SearchBar(modifier: Modifier = Modifier) {
         //Comment le composant doit se placer
         modifier = modifier
             .fillMaxWidth() // Prend toute la largeur
-            .heightIn(min = 56.dp) //Hauteur minimum
+            .heightIn(min = 56.dp) //Hauteur minimum,
     )
 }
